@@ -24,7 +24,7 @@ public class User{
     private String password;
     private String address;
     private String phone;
-    private String roles = "USER";
+    private String roles = "ROLE_USER";
 
     @CreationTimestamp
     private LocalDateTime createdAt;
