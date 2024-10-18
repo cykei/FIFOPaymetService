@@ -20,7 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder; // 아 이거 여기 있는거 별론데...
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void signUp(UserSignUpRequest signUpRequest) {
@@ -28,7 +28,7 @@ public class UserService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("이미 등록된 이메일입니다.");
         }
-        user.updatePassword(passwordEncoder.encode(signUpRequest.getPassword())); // 이거 원래 프론트에서 암호화해서 보내줘야 하는건데 흠...
+        user.updatePassword(passwordEncoder.encode(signUpRequest.getPassword()));
         userRepository.save(user);
     }
 
@@ -39,7 +39,7 @@ public class UserService {
 
         // 1. username + password 를 기반으로 Authentication 객체 생성
         // 이때 authentication 은 인증 여부를 확인하는 authenticated 값이 false
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password, null);
 
         // 2. 실제 검증. authenticate() 메서드를 통해 요청된 Member 에 대한 검증 진행
         // authenticate 메서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드 실행
