@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        format_sql: true
+#        highlight_sql: true
+#        use_sql_comments: true
+  sql:
+    init:
+      data-locations: classpath:data.sql
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+jwt:
+  expiration_time: 86400000 # 1day
+  secret: bd6529fd5e32e820d513a0d814d5b1542a59527c947fe154d03f41a0dffee001
