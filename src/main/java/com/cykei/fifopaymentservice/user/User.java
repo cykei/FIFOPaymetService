@@ -1,8 +1,9 @@
 package com.cykei.fifopaymentservice.user;
 
+import com.cykei.fifopaymentservice.user.service.CryptoConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -11,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Setter
 @Entity
 public class User{
     @Id
@@ -19,10 +20,18 @@ public class User{
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Convert(converter = CryptoConverter.class)
     private String name;
+
+    @Convert(converter = CryptoConverter.class)
     private String email;
+    
     private String password;
+
+    @Convert(converter = CryptoConverter.class)
     private String address;
+
+    @Convert(converter = CryptoConverter.class)
     private String phone;
     private String roles = "ROLE_USER";
 
@@ -31,14 +40,6 @@ public class User{
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    public User(String name, String email, String password, String address, String phone) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.address = address;
-        this.phone = phone;
-    }
 
     public List<String> getRoles() {
         return Arrays.stream(roles.split(",")).toList();

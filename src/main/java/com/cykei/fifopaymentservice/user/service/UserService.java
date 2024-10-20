@@ -1,6 +1,7 @@
 package com.cykei.fifopaymentservice.user.service;
 
 import com.cykei.fifopaymentservice.user.User;
+import com.cykei.fifopaymentservice.user.mapper.UserMapper;
 import com.cykei.fifopaymentservice.user.repository.UserRepository;
 import com.cykei.fifopaymentservice.user.service.dto.JwtToken;
 import com.cykei.fifopaymentservice.user.service.dto.UserRequest;
@@ -21,10 +22,11 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Transactional
     public void signUp(UserSignUpRequest signUpRequest) {
-        User user = signUpRequest.toEntity();
+        User user = userMapper.mapToEntity(signUpRequest);
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("이미 등록된 이메일입니다.");
         }
