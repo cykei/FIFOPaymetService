@@ -3,9 +3,9 @@ package com.cykei.fifopaymentservice.product.service;
 import com.cykei.fifopaymentservice.product.Product;
 import com.cykei.fifopaymentservice.product.dto.PagingProductResponse;
 import com.cykei.fifopaymentservice.product.dto.ProductDetailResponse;
-import com.cykei.fifopaymentservice.product.dto.ProductDto;
 import com.cykei.fifopaymentservice.product.mapper.ProductMapper;
 import com.cykei.fifopaymentservice.product.repository.ProductRepository;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,5 +32,9 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("없는 상품입니다."));
         return productMapper.toDetailResponse(product);
+    }
+
+    public List<Product> getProducts(List<Long> productIds) {
+        return productRepository.findProductsByProductIdIn(productIds);
     }
 }

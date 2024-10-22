@@ -33,7 +33,7 @@ public class JwtTokenProvider {
     }
 
     // User 정보를 가지고 AccessToken, RefreshToken을 생성하는 메서드
-    public JwtToken generateToken(Authentication authentication) {
+    public JwtToken generateToken(Authentication authentication, long userId) {
         // 권한 가져오기
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -41,11 +41,15 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
 
+        Claims claims = Jwts.claims().setSubject(authentication.getName());
+        claims.put("userId", userId);
+        claims.put("auth", authorities);
+
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + this.expirationTime);
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim("auth", authorities)
+                .setClaims(claims)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -118,4 +122,7 @@ public class JwtTokenProvider {
         }
     }
 
+    public Long getUserIdFromToken(String accessToken) {
+        return parseClaims(accessToken).get("userId", Long.class);
+    }
 }
