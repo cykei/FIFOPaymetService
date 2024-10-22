@@ -9,10 +9,10 @@ public class ProductDto {
     private long productId;
     private String name;
     private String image;
-    private long price;
+    private int price;
     private String options;
 
-    public ProductDto(long productId, String name, String image, long price, String options) {
+    public ProductDto(long productId, String name, String image, int price, String options) {
         this.productId = productId;
         this.name = name;
         this.image = image;

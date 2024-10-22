@@ -9,7 +9,7 @@ import lombok.Setter;
 public class ProductResponse {
     private long productId;
     private String name;
-    private String image;
+    private String mainImage;
     private long price;
     private String[] options;
 }

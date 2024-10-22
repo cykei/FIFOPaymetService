@@ -1,11 +1,13 @@
 package com.cykei.fifopaymentservice.product;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 public class ProductOption {
     @Id
@@ -13,13 +15,14 @@ public class ProductOption {
     @Column(name = "id", nullable = false)
     private long id;
 
-    private long productId;
+    @Column(name = "product_id")
+    long productId;
 
     private String optionName;
 
     private int optionPrice;
 
-    private String optionImageUrl;
+    private String optionImage;
 
     private int productCount;
 

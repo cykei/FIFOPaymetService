@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @ToString
 @Getter
@@ -21,7 +22,11 @@ public class Product {
 
     private String image;
 
-    private long price;
+    private int price;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private List<ProductOption> productOptions;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
