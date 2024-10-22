@@ -1,22 +1,23 @@
 package com.cykei.fifopaymentservice.product;
 
-
 import jakarta.persistence.*;
+import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
-public class ProductCategory {
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private long id;
-
+    @Column(name = "category_id", nullable = false)
     private long categoryId;
 
-    private long productId;
+    private String categoryName;
+
+    private long parentCategoryId;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

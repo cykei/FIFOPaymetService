@@ -19,7 +19,7 @@ class ProductRepositoryTest {
     @Autowired
     ProductRepository productRepository;
 
-    @DisplayName("전체조회 기능 이상여부 검증")
+    @DisplayName("1번 카테고리 상품 조회")
     @Test
     void getProducts() {
         List<ProductDto> products = productRepository.findProductsByCategoryId(1L, null, 10);

@@ -1,8 +1,8 @@
 package com.cykei.fifopaymentservice.product.repository.impl;
 
 import com.cykei.fifopaymentservice.product.QProduct;
-import com.cykei.fifopaymentservice.product.QProductCategory;
 import com.cykei.fifopaymentservice.product.QProductOption;
+import com.cykei.fifopaymentservice.product.QRelationshipCategoryProduct;
 import com.cykei.fifopaymentservice.product.dto.ProductDto;
 import com.cykei.fifopaymentservice.product.repository.ProductRepositoryCustom;
 import com.querydsl.core.types.Projections;
@@ -18,7 +18,7 @@ import java.util.Objects;
 @Repository
 public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
-    private static final QProductCategory productCategory = new QProductCategory("productCategory");
+    private static final QRelationshipCategoryProduct relation = new QRelationshipCategoryProduct("relation");
     private static final QProduct product = new QProduct("product");
     private static final QProductOption productOption = new QProductOption("productOption");
     private final JPAQueryFactory queryFactory;
@@ -38,12 +38,12 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                         product.price,
                         Expressions.stringTemplate(aggregationFunction(), productOption.optionName).as("options")
                 ))
-                .from(productCategory)
-                .join(product).on(productCategory.productId.eq(product.productId))
+                .from(relation)
+                .join(product).on(relation.productId.eq(product.productId))
                 .leftJoin(productOption).on(product.productId.eq(productOption.productId))
                 .where(eqCategoryId(categoryId),
                         loeCursor(cursor))
-                .groupBy(productCategory.categoryId, product.productId, product.name)
+                .groupBy(relation.categoryId, product.productId, product.name)
                 .orderBy(product.productId.desc())
                 .limit(size)
                 .fetch();
@@ -57,7 +57,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     private BooleanExpression eqCategoryId(long categoryId) {
-        return productCategory.categoryId.eq(categoryId);
+        return relation.categoryId.eq(categoryId);
     }
 
     private BooleanExpression loeCursor(Long cursor) {
