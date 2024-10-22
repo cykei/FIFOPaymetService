@@ -1,6 +1,6 @@
 package com.cykei.fifopaymentservice.product.repository;
 
-import com.cykei.fifopaymentservice.product.dto.ProductDto;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 
 import java.util.List;
 

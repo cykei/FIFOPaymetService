@@ -1,4 +1,4 @@
-package com.cykei.fifopaymentservice.product.dto;
+package com.cykei.fifopaymentservice.product.repository.dto;
 
 import lombok.Getter;
 import lombok.ToString;

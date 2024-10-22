@@ -4,7 +4,7 @@ import com.cykei.fifopaymentservice.product.Product;
 import com.cykei.fifopaymentservice.product.ProductOption;
 import com.cykei.fifopaymentservice.product.dto.OptionResponse;
 import com.cykei.fifopaymentservice.product.dto.ProductDetailResponse;
-import com.cykei.fifopaymentservice.product.dto.ProductDto;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import com.cykei.fifopaymentservice.product.dto.ProductResponse;
 import org.mapstruct.*;
 

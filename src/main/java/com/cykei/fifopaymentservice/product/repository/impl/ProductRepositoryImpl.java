@@ -3,7 +3,7 @@ package com.cykei.fifopaymentservice.product.repository.impl;
 import com.cykei.fifopaymentservice.product.QProduct;
 import com.cykei.fifopaymentservice.product.QProductOption;
 import com.cykei.fifopaymentservice.product.QRelationshipCategoryProduct;
-import com.cykei.fifopaymentservice.product.dto.ProductDto;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import com.cykei.fifopaymentservice.product.repository.ProductRepositoryCustom;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;

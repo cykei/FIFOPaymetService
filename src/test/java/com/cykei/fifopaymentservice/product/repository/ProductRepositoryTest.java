@@ -1,7 +1,7 @@
 package com.cykei.fifopaymentservice.product.repository;
 
 import com.cykei.fifopaymentservice.product.Product;
-import com.cykei.fifopaymentservice.product.dto.ProductDto;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
