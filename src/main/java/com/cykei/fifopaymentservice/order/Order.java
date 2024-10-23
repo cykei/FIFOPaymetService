@@ -4,13 +4,11 @@ import com.cykei.fifopaymentservice.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Setter
 @Getter
 @NoArgsConstructor
 @Table(name = "orders")
@@ -41,5 +39,9 @@ public class Order {
         this.userId = userId;
         this.orderAddress = orderAddress;
         this.orderTotalPrice = orderTotalPrice;
+    }
+
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

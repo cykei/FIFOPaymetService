@@ -1,6 +1,7 @@
 package com.cykei.fifopaymentservice.order.enums;
 
 public enum OrderStatus {
+    ORDER_CANCEL("주문취소"),
     ORDER_COMPLETE("주문완료"),
     DELIVERY_NOW("배송중"),
     DELIVERY_COMPLETE("배송완료"),

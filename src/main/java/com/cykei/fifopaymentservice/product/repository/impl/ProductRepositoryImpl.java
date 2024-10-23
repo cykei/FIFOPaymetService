@@ -10,7 +10,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,11 +23,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     private static final QProduct product = new QProduct("product");
     private static final QProductOption productOption = new QProductOption("productOption");
     private final JPAQueryFactory queryFactory;
-    private final EntityManager entityManager;
+    private final ApplicationContext applicationContext;
 
-    public ProductRepositoryImpl(JPAQueryFactory queryFactory, EntityManager entityManager) {
+    public ProductRepositoryImpl(JPAQueryFactory queryFactory, ApplicationContext applicationContext) {
         this.queryFactory = queryFactory;
-        this.entityManager = entityManager;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -66,10 +66,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     private String aggregationFunction() {
-        boolean isH2 = entityManager.getEntityManagerFactory().getProperties()
-                .get("hibernate.dialect").toString().contains("H2Dialect");
+        return isTestExecution() ? "STRING_AGG({0}, ',')" : "GROUP_CONCAT({0})";
+    }
 
-        return isH2 ? "STRING_AGG({0}, ',')" : "GROUP_CONCAT({0}, ',')";
+    private boolean isTestExecution() {
+        return applicationContext.getEnvironment().getProperty("spring.test.context.active") != null;
     }
 
     private BooleanExpression eqCategoryId(long categoryId) {

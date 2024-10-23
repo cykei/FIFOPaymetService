@@ -21,4 +21,12 @@ public class ProductOptionRepositoryImpl implements ProductOptionRepositoryCusto
                 .where(productOption.id.eq(optionId))
                 .execute();
     }
+
+    @Override
+    public void increaseStock(long optionId, int count) {
+        queryFactory.update(productOption)
+                .set(productOption.productCount, productOption.productCount.add(count))
+                .where(productOption.id.eq(optionId))
+                .execute();
+    }
 }

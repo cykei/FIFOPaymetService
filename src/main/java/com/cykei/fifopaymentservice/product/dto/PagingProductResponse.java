@@ -7,6 +7,6 @@ import java.util.List;
 
 public record PagingProductResponse (
     long totalCount,
-    @Nullable long cursor,
+    @Nullable Long cursor,
     @NotNull List<ProductResponse> products
 ) {}

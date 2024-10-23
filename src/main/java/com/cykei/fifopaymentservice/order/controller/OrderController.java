@@ -30,4 +30,9 @@ public class OrderController {
     public Long createOrder(@RequestBody OrderCreateRequest orderCreateRequest, @UserId Long userId) {
         return orderService.createOrder(orderCreateRequest, userId);
     }
+
+    @DeleteMapping("/{orderId}")
+    public String cancelOrder(@PathVariable Long orderId, @UserId Long userId) {
+        return orderService.cancelOrder(orderId, userId);
+    }
 }

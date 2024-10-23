@@ -6,6 +6,7 @@ import com.cykei.fifopaymentservice.order.dto.OrderCreateRequest;
 import com.cykei.fifopaymentservice.order.dto.OrderDetailResponse;
 import com.cykei.fifopaymentservice.order.dto.OrderRequest;
 import com.cykei.fifopaymentservice.order.dto.PagingOrderResponse;
+import com.cykei.fifopaymentservice.order.enums.OrderStatus;
 import com.cykei.fifopaymentservice.order.mapper.OrderMapper;
 import com.cykei.fifopaymentservice.order.repository.OrderProductRepository;
 import com.cykei.fifopaymentservice.order.repository.OrderRepository;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,13 +54,13 @@ public class OrderService {
     }
 
     public List<OrderDetailResponse> getOrderDetail(long orderId, long userId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 요청입니다."));
+        Order order = getOrder(orderId);
         validateUser(order, userId);
 
         List<OrderProduct> orderProducts = orderProductRepository.findByOrderId(orderId);
         return orderMapper.toDetailResponses(orderProducts);
     }
+
 
     @Transactional
     public long createOrder(OrderCreateRequest orderCreateRequest, long userId) {
@@ -101,11 +103,49 @@ public class OrderService {
         return orderId;
     }
 
+    @Transactional
+    public String cancelOrder(long orderId, long userId) {
+        Order order = getOrder(orderId);
+        validateUser(order, userId);
+
+        if (order.getOrderStatus().equals(OrderStatus.ORDER_COMPLETE)) {
+            order.updateOrderStatus(OrderStatus.ORDER_CANCEL);
+            restoreStock(order);
+            return makeCancelMessage(OrderStatus.ORDER_CANCEL);
+        }
+
+        if (order.getOrderStatus().equals(OrderStatus.DELIVERY_NOW)) {
+            if (order.getCreatedAt().isAfter(LocalDateTime.now().minusDays(1))) {
+                order.updateOrderStatus(OrderStatus.RETURN_REQUEST);
+            }
+            return makeCancelMessage(OrderStatus.RETURN_REQUEST);
+        }
+
+        return "잘못된 요청입니다";
+    }
+
+    @Transactional
+    public void restoreStock(Order order) {
+        List<OrderProduct> returnOrderProducts = orderProductRepository.findByOrderId(order.getOrderId());
+        for (OrderProduct orderProduct : returnOrderProducts) {
+            productOptionRepository.increaseStock(orderProduct.getOptionId(), orderProduct.getProductCount());
+        }
+    }
+
+    private Order getOrder(long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("잘못된 요청입니다"));
+    }
+
     private void validateUser(Order order, long userId) {
-        if (order.getUserId() != userId) throw new IllegalArgumentException("주문내역 열람 권한이 없습니다.");
+        if (order.getUserId() != userId) throw new IllegalArgumentException("권한이 없습니다");
     }
 
     private void validatePrice(long expectedPrice, long sourcePrice) {
-        if (expectedPrice != sourcePrice) throw new IllegalArgumentException("주문에 실패했습니다.");
+        if (expectedPrice != sourcePrice) throw new IllegalArgumentException("주문에 실패했습니다");
+    }
+
+    private String makeCancelMessage(OrderStatus orderStatus) {
+        return String.format("%s 되었습니다", orderStatus.getDescription());
     }
 }
