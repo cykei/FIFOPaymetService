@@ -3,8 +3,9 @@ package com.cykei.fifopaymentservice.product.repository.impl;
 import com.cykei.fifopaymentservice.product.QProduct;
 import com.cykei.fifopaymentservice.product.QProductOption;
 import com.cykei.fifopaymentservice.product.QRelationshipCategoryProduct;
-import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import com.cykei.fifopaymentservice.product.repository.ProductRepositoryCustom;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
+import com.cykei.fifopaymentservice.product.repository.dto.ProductOptionDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -23,6 +24,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     private static final QProductOption productOption = new QProductOption("productOption");
     private final JPAQueryFactory queryFactory;
     private final EntityManager entityManager;
+
     public ProductRepositoryImpl(JPAQueryFactory queryFactory, EntityManager entityManager) {
         this.queryFactory = queryFactory;
         this.entityManager = entityManager;
@@ -46,6 +48,20 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                 .groupBy(relation.categoryId, product.productId, product.name)
                 .orderBy(product.productId.desc())
                 .limit(size)
+                .fetch();
+    }
+
+    @Override
+    public List<ProductOptionDto> findProductOptionsIn(List<Long> optionsIds) {
+        return queryFactory.select(Projections.constructor(ProductOptionDto.class,
+                        productOption.id,
+                        product.productId,
+                        product.price,
+                        productOption.id,
+                        productOption.optionPrice))
+                .from(productOption)
+                .join(product).on(productOption.productId.eq(product.productId))
+                .where(productOption.id.in(optionsIds))
                 .fetch();
     }
 
