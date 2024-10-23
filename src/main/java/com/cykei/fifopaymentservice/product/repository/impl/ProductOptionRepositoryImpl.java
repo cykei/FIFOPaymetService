@@ -17,7 +17,7 @@ public class ProductOptionRepositoryImpl implements ProductOptionRepositoryCusto
     @Override
     public void decreaseStock(long optionId, int count) {
         queryFactory.update(productOption)
-                .set(productOption.productCount, count)
+                .set(productOption.productCount, productOption.productCount.subtract(count))
                 .where(productOption.id.eq(optionId))
                 .execute();
     }
