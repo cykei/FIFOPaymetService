@@ -19,11 +19,13 @@ public class ProductService {
 
     public PagingProductResponse getProducts(long categoryId, Long cursor, int size) {
         List<ProductDto> products = productRepository.findProductsByCategoryId(categoryId, cursor, size);
-        long nextCursor = products.get(products.size() - 1).getProductId();
-
+        Long nextCursor = null;
+        if (products.size() == size) {
+            nextCursor = products.get(products.size() - 1).getProductId();
+        }
         return new PagingProductResponse(
                 products.size(),
-                nextCursor + 1,
+                nextCursor,
                 productMapper.toResponses(products)
         );
     }
