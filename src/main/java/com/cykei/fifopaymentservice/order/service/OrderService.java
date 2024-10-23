@@ -1,11 +1,9 @@
 package com.cykei.fifopaymentservice.order.service;
 
+import com.cykei.fifopaymentservice.common.PagingResponse;
 import com.cykei.fifopaymentservice.order.Order;
 import com.cykei.fifopaymentservice.order.OrderProduct;
-import com.cykei.fifopaymentservice.order.dto.OrderCreateRequest;
-import com.cykei.fifopaymentservice.order.dto.OrderDetailResponse;
-import com.cykei.fifopaymentservice.order.dto.OrderRequest;
-import com.cykei.fifopaymentservice.order.dto.PagingOrderResponse;
+import com.cykei.fifopaymentservice.order.dto.*;
 import com.cykei.fifopaymentservice.order.enums.OrderStatus;
 import com.cykei.fifopaymentservice.order.mapper.OrderMapper;
 import com.cykei.fifopaymentservice.order.repository.OrderProductRepository;
@@ -35,7 +33,7 @@ public class OrderService {
     private final ProductOptionRepository productOptionRepository;
     private final OrderMapper orderMapper;
 
-    public PagingOrderResponse getOrders(Long cursor, int size, long userId) {
+    public PagingResponse<OrderResponse> getOrders(Long cursor, int size, long userId) {
         List<Order> orders = orderRepository.getOrders(userId, size, cursor);
         if (orders.isEmpty()) {
             return null;
@@ -46,7 +44,7 @@ public class OrderService {
             nextCursor = orders.get(orders.size() - 1).getOrderId();
         }
 
-        return new PagingOrderResponse(
+        return new PagingResponse<>(
                 orders.size(),
                 nextCursor,
                 orderMapper.toResponses(orders)

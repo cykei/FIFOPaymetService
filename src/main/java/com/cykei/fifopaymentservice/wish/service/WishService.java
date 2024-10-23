@@ -1,9 +1,9 @@
 package com.cykei.fifopaymentservice.wish.service;
 
+import com.cykei.fifopaymentservice.common.PagingResponse;
 import com.cykei.fifopaymentservice.product.Product;
 import com.cykei.fifopaymentservice.product.service.ProductService;
 import com.cykei.fifopaymentservice.wish.Wish;
-import com.cykei.fifopaymentservice.wish.dto.PagingWishResponse;
 import com.cykei.fifopaymentservice.wish.dto.WishCreateRequest;
 import com.cykei.fifopaymentservice.wish.dto.WishProductResponse;
 import com.cykei.fifopaymentservice.wish.mapper.WishMapper;
@@ -22,7 +22,7 @@ public class WishService {
     private final WishMapper wishMapper;
     private final ProductService productService;
 
-    public PagingWishResponse getWishes(long userId, int size, Long cursor) {
+    public PagingResponse<WishProductResponse> getWishes(long userId, int size, Long cursor) {
         List<Wish> wishes = wishRepository.getWishes(userId, size, cursor);
 
         List<Long> productIds = wishes.stream()
@@ -36,7 +36,7 @@ public class WishService {
             nextCursor = wishes.get(wishes.size() - 1).getWishId();
         }
 
-        return new PagingWishResponse(
+        return new PagingResponse<>(
                 wishes.size(),
                 nextCursor,
                 productResponses

@@ -1,8 +1,9 @@
 package com.cykei.fifopaymentservice.wish.controller;
 
+import com.cykei.fifopaymentservice.common.PagingResponse;
 import com.cykei.fifopaymentservice.common.UserId;
-import com.cykei.fifopaymentservice.wish.dto.PagingWishResponse;
 import com.cykei.fifopaymentservice.wish.dto.WishCreateRequest;
+import com.cykei.fifopaymentservice.wish.dto.WishProductResponse;
 import com.cykei.fifopaymentservice.wish.service.WishService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ public class WishController {
     private final WishService wishService;
 
     @GetMapping
-    public PagingWishResponse getWishes(
+    public PagingResponse<WishProductResponse> getWishes(
             @UserId Long userId,
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") int size) {

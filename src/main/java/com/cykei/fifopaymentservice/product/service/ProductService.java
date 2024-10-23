@@ -1,8 +1,9 @@
 package com.cykei.fifopaymentservice.product.service;
 
+import com.cykei.fifopaymentservice.common.PagingResponse;
 import com.cykei.fifopaymentservice.product.Product;
-import com.cykei.fifopaymentservice.product.dto.PagingProductResponse;
 import com.cykei.fifopaymentservice.product.dto.ProductDetailResponse;
+import com.cykei.fifopaymentservice.product.dto.ProductResponse;
 import com.cykei.fifopaymentservice.product.mapper.ProductMapper;
 import com.cykei.fifopaymentservice.product.repository.ProductRepository;
 import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
@@ -17,13 +18,13 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    public PagingProductResponse getProducts(long categoryId, Long cursor, int size) {
+    public PagingResponse<ProductResponse> getProducts(long categoryId, Long cursor, int size) {
         List<ProductDto> products = productRepository.findProductsByCategoryId(categoryId, cursor, size);
         Long nextCursor = null;
         if (products.size() == size) {
             nextCursor = products.get(products.size() - 1).getProductId();
         }
-        return new PagingProductResponse(
+        return new PagingResponse<> (
                 products.size(),
                 nextCursor,
                 productMapper.toResponses(products)

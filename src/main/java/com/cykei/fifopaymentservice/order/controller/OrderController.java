@@ -1,9 +1,10 @@
 package com.cykei.fifopaymentservice.order.controller;
 
+import com.cykei.fifopaymentservice.common.PagingResponse;
 import com.cykei.fifopaymentservice.common.UserId;
 import com.cykei.fifopaymentservice.order.dto.OrderCreateRequest;
 import com.cykei.fifopaymentservice.order.dto.OrderDetailResponse;
-import com.cykei.fifopaymentservice.order.dto.PagingOrderResponse;
+import com.cykei.fifopaymentservice.order.dto.OrderResponse;
 import com.cykei.fifopaymentservice.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public PagingOrderResponse getOrders(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int size, @UserId Long userId) {
+    public PagingResponse<OrderResponse> getOrders(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int size, @UserId Long userId) {
         return orderService.getOrders(cursor, size, userId);
     }
 
