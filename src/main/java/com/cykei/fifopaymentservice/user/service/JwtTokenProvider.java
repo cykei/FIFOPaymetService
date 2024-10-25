@@ -80,11 +80,13 @@ public class JwtTokenProvider {
         List<String> authorities = Arrays.stream(claims.get("auth").toString().split(","))
                 .collect(Collectors.toList());
 
+        Long userId = Long.parseLong(claims.get("userId").toString());
+
         // UserDetails 객체를 만들어서 Authentication return
         // UserDetails: interface, User: UserDetails를 구현한 class
         //UserDetails principal = new User(claims.getSubject(), "", authorities);
 
-        UserDetails principal = new UserDetailsImpl(claims.getSubject(), "", authorities);
+        UserDetails principal = new UserDetailsImpl(claims.getSubject(), "", authorities, userId);
         return new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
     }
 
