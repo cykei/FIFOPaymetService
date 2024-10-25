@@ -9,6 +9,7 @@ import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import com.cykei.fifopaymentservice.wish.Wish;
 import com.cykei.fifopaymentservice.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class PopularProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
+    @Cacheable(value = "popular", key = "#size")
     public List<ProductResponse> getPopularProducts(int size) {
 
         LocalDateTime referenceDate = LocalDateTime.now().minusDays(7);
