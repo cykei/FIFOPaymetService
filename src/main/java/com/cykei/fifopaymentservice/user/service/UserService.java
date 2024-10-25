@@ -54,4 +54,13 @@ public class UserService {
         return jwtToken;
     }
 
+    @Transactional
+    public void updatePassword(long userId, UserRequest userRequest) {
+        User user = userRepository.findById(userId).orElseThrow();
+        if (user.getEmail().equals(userRequest.getEmail())) {
+            user.updatePassword(userRequest.getPassword());
+            userRepository.save(user);
+        }
+    }
+
 }

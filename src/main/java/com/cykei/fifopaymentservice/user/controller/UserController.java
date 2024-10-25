@@ -1,5 +1,6 @@
 package com.cykei.fifopaymentservice.user.controller;
 
+import com.cykei.fifopaymentservice.common.UserId;
 import com.cykei.fifopaymentservice.user.service.UserService;
 import com.cykei.fifopaymentservice.user.service.dto.JwtToken;
 import com.cykei.fifopaymentservice.user.service.dto.UserRequest;
@@ -25,10 +26,10 @@ public class UserController {
         return userService.login(request);
     }
 
-//    @PostMapping("update-password")
-//    public void updatePassword(@RequestBody UserRequest request) {
-//        userService.updatePassword(request);
-//    }
+    @PostMapping("update-password")
+    public void updatePassword(@UserId Long userId, @RequestBody UserRequest request) {
+        userService.updatePassword(userId, request);
+    }
 
     @PostMapping("test")
     public String test() {
