@@ -6,6 +6,7 @@ import com.cykei.fifopaymentservice.product.QRelationshipCategoryProduct;
 import com.cykei.fifopaymentservice.product.repository.ProductRepositoryCustom;
 import com.cykei.fifopaymentservice.product.repository.dto.ProductDto;
 import com.cykei.fifopaymentservice.product.repository.dto.ProductOptionDto;
+import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -31,15 +32,9 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     @Override
-    public List<ProductDto> findProductsByCategoryId(long categoryId, Long cursor, int size) {
+    public List<ProductDto> findProductDtosByCategoryId(long categoryId, Long cursor, int size) {
         return queryFactory
-                .select(Projections.constructor(ProductDto.class,
-                        product.productId,
-                        product.name,
-                        product.image,
-                        product.price,
-                        Expressions.stringTemplate(aggregationFunction(), productOption.optionName).as("options")
-                ))
+                .select(getProductDtoConstructorExpression())
                 .from(relation)
                 .join(product).on(relation.productId.eq(product.productId))
                 .leftJoin(productOption).on(product.productId.eq(productOption.productId))
@@ -65,6 +60,28 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                 .fetch();
     }
 
+    @Override
+    public List<ProductDto> findProductDtosByProductIdIn(List<Long> productIds) {
+        return queryFactory
+                .select(getProductDtoConstructorExpression())
+                .from(relation)
+                .join(product).on(relation.productId.eq(product.productId))
+                .leftJoin(productOption).on(product.productId.eq(productOption.productId))
+                .where(isInProductIds(productIds))
+                .groupBy(relation.categoryId, product.productId, product.name)
+                .fetch();
+    }
+
+    private ConstructorExpression<ProductDto> getProductDtoConstructorExpression() {
+        return Projections.constructor(ProductDto.class,
+                product.productId,
+                product.name,
+                product.image,
+                product.price,
+                Expressions.stringTemplate(aggregationFunction(), productOption.optionName).as("options")
+        );
+    }
+
     private String aggregationFunction() {
         return isTestExecution() ? "STRING_AGG({0}, ',')" : "GROUP_CONCAT({0})";
     }
@@ -82,5 +99,9 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             return null;
         }
         return product.productId.loe(cursor);
+    }
+
+    private BooleanExpression isInProductIds(List<Long> productIds) {
+        return product.productId.in(productIds);
     }
 }

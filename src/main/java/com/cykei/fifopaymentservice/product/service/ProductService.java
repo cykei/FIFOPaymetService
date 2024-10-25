@@ -19,7 +19,7 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     public PagingResponse<ProductResponse> getProducts(long categoryId, Long cursor, int size) {
-        List<ProductDto> products = productRepository.findProductsByCategoryId(categoryId, cursor, size);
+        List<ProductDto> products = productRepository.findProductDtosByCategoryId(categoryId, cursor, size);
         Long nextCursor = null;
         if (products.size() == size) {
             nextCursor = products.get(products.size() - 1).getProductId();

@@ -48,7 +48,7 @@ public class WishService {
         Wish wish = wishMapper.toEntity(wishRequest);
 
         if (wishRepository.existsByProductIdAndUserId(wish.getProductId(), wish.getUserId()))
-            return 1L;
+            return 0L;
 
         return wishRepository.save(wish).getWishId();
     }

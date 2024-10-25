@@ -1,9 +1,7 @@
 package com.cykei.fifopaymentservice.product.repository.dto;
 
 import lombok.Getter;
-import lombok.ToString;
 
-@ToString
 @Getter
 public class ProductDto {
     private long productId;

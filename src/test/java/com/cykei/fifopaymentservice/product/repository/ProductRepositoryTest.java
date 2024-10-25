@@ -22,7 +22,7 @@ class ProductRepositoryTest {
     @DisplayName("1번 카테고리 상품 조회")
     @Test
     void getProducts() {
-        List<ProductDto> products = productRepository.findProductsByCategoryId(1L, null, 10);
+        List<ProductDto> products = productRepository.findProductDtosByCategoryId(1L, null, 10);
         assertThat(products.size()).isEqualTo(4);
         assertThat(products.get(0).getProductId()).isEqualTo(5);
         assertThat(products.get(0).getOptions()).containsExactlyInAnyOrder("그레이", "베이지");
