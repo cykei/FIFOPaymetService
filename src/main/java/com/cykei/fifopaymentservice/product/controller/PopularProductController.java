@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RequiredArgsConstructor
-@RequestMapping("popular/products")
+@RequestMapping("products/popular")
 @RestController
 public class PopularProductController {
     private final PopularProductService popularProductService;

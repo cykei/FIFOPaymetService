@@ -5,12 +5,10 @@ import com.cykei.fifopaymentservice.product.dto.ProductDetailResponse;
 import com.cykei.fifopaymentservice.product.dto.ProductResponse;
 import com.cykei.fifopaymentservice.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
+@RequestMapping("products")
 @RestController
 public class ProductController {
     private final ProductService productService;
@@ -20,7 +18,7 @@ public class ProductController {
         return productService.getProducts(categoryId, cursor, size);
     }
 
-    @GetMapping("products/{productId}")
+    @GetMapping("{productId}")
     public ProductDetailResponse getProductDetail(@PathVariable long productId) {
         return productService.getProductDetail(productId);
     }
