@@ -1,1 +1,8 @@
 rootProject.name = 'FIFOPaymentService'
+
+include 'common'
+include 'admin'
+include 'wish-service'
+include 'product-service'
+include 'order-service'
+include 'user-service'

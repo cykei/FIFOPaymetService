@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: product-service
+  datasource:
+    url: jdbc:mysql://localhost:3307/ecommerce?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  data:
+    redis:
+      port: 6379
+      host: redis
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+jwt:
+  expiration_time: 86400000 # 1day
+  secret: bd6529fd5e32e820d513a0d814d5b1542a59527c947fe154d03f41a0dffee001
+
+encryption:
+  key: SdeQ5szCPHArzWenhI5DWg==
