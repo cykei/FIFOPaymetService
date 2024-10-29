@@ -8,16 +8,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "product-service", url = "localhost:8082/api/products")
+@FeignClient(name = "product-service")
 public interface ProductClient {
 
-    @GetMapping("/options")
-    List<ProductOptionResponse> findProductOptionsIn(@RequestParam List<Long> optionIds);
+    @GetMapping("/api/products/options")
+    List<ProductOptionResponse> findProductOptionsIn(@RequestParam("optionIds") List<Long> optionIds);
 
-    @PostMapping("/decreaseStock")
-    void decreaseStock(@RequestParam Long optionId, @RequestParam Integer quantity);
+    @PostMapping("/api/products/decreaseStock")
+    void decreaseStock(@RequestParam("optionId") Long optionId, @RequestParam("quantity") Integer quantity);
 
-    @PostMapping("/increaseStock")
-    void increaseStock(@RequestParam Long optionId, @RequestParam Integer quantity);
+    @PostMapping("/api/products/increaseStock")
+    void increaseStock(@RequestParam("optionId") Long optionId, @RequestParam("quantity") Integer quantity);
 
 }

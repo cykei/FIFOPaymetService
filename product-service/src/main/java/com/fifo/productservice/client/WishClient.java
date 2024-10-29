@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "wish-service", url="localhost:8084/api/wishes")
+@FeignClient(name = "wish-service")
 public interface WishClient {
-    @GetMapping
-    List<WishResponse> findWishesByCreatedAtAfter(@RequestParam String dateTime);
+    @GetMapping("/api/wishes")
+    List<WishResponse> findWishesByCreatedAtAfter(@RequestParam("dateTime") String dateTime);
 }

@@ -7,9 +7,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "order-service", url="localhost:8081/api/orders")
+@FeignClient(name = "order-service")
 public interface OrderClient {
-
-    @GetMapping("/products")
-    List<OrderProductResponse> findOrderProductsByCreatedAtAfter(@RequestParam String dateTime);
+    @GetMapping("/api/orders/products")
+    List<OrderProductResponse> findOrderProductsByCreatedAtAfter(@RequestParam("dateTime") String dateTime);
 }

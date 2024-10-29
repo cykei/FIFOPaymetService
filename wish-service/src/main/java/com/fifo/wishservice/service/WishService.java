@@ -41,8 +41,7 @@ public class WishService {
         return new PagingResponse<>(
                 wishes.size(),
                 nextCursor,
-                null
-                //productResponses
+                productResponses
         );
     }
 

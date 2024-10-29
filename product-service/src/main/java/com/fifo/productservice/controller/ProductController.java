@@ -28,7 +28,7 @@ public class ProductController {
 
     // for wish-service
     @GetMapping
-    public List<ProductResponse> getProducts(List<Long> productIds) {
+    public List<ProductResponse> getProducts(@RequestParam List<Long> productIds) {
         return productService.getProducts(productIds);
     }
 
