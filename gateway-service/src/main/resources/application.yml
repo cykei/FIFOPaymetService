@@ -1,0 +1,67 @@
+server:
+  port: 8000
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://127.0.0.1:8761/eureka/}
+
+spring:
+  application:
+    name: gateway-service
+
+  cloud:
+    gateway:
+      routes:
+#        - id: user-service-non-filter
+#          uri: lb://user-service
+#          predicates:
+#            - Path=/user-service/login
+#            - Path=/user-service/signup
+#          filters:
+#            - StripPrefix=1
+#        - id: user-service
+#          uri: lb://user-service
+#          predicates:
+#            - Path=/user-service/api/**
+#          filters:
+#            - StripPrefix=1
+#            - name: JwtFilter
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - StripPrefix=1
+            - name: JwtFilter
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/**
+          filters:
+            - StripPrefix=1
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/**
+          filters:
+            - StripPrefix=1
+            - name: JwtFilter
+        - id: wish-service
+          uri: lb://wish-service
+          predicates:
+            - Path=/wish-service/**
+          filters:
+            - StripPrefix=1
+            - name: JwtFilter
+      default-filters:
+        - name: LoggingFilter
+          args:
+            baseMessage: "Spring Cloud Gateway Global Filter"
+            preLogger: true
+            postLogger: true
+
+jwt:
+  secret: bd6529fd5e32e820d513a0d814d5b1542a59527c947fe154d03f41a0dffee001
