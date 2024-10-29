@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 public class OrderCreateRequest {
     String orderAddress;
+    Long userId;
 
     @NotBlank
     List<OrderRequest> orderRequests;

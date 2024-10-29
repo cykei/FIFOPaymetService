@@ -4,18 +4,18 @@ package com.fifo.orderservice.service;
 import com.fifo.common.dto.PagingResponse;
 import com.fifo.orderservice.client.ProductClient;
 import com.fifo.orderservice.client.dto.ProductOptionResponse;
-import com.fifo.orderservice.service.dto.OrderCreateRequest;
-import com.fifo.orderservice.service.dto.OrderDetailResponse;
-import com.fifo.orderservice.service.dto.OrderRequest;
-import com.fifo.orderservice.service.dto.OrderResponse;
 import com.fifo.orderservice.entity.Order;
 import com.fifo.orderservice.entity.OrderProduct;
 import com.fifo.orderservice.enums.OrderStatus;
 import com.fifo.orderservice.mapper.OrderMapper;
 import com.fifo.orderservice.repository.OrderProductRepository;
 import com.fifo.orderservice.repository.OrderRepository;
-import lombok.Data;
+import com.fifo.orderservice.service.dto.OrderCreateRequest;
+import com.fifo.orderservice.service.dto.OrderDetailResponse;
+import com.fifo.orderservice.service.dto.OrderRequest;
+import com.fifo.orderservice.service.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Data
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -64,7 +64,7 @@ public class OrderService {
 
 
     @Transactional
-    public long createOrder(OrderCreateRequest orderCreateRequest, long userId) {
+    public long createOrder(OrderCreateRequest orderCreateRequest) {
         List<Long> optionIds = orderCreateRequest.getOrderRequests().stream()
                 .map(OrderRequest::getOptionId)
                 .collect(Collectors.toList());
@@ -82,10 +82,9 @@ public class OrderService {
             totalPrice += finalPrice * optionCount;
         }
 
-        validatePrice(totalPrice, orderCreateRequest.getTotalPrice());
+        validatePrice(totalPrice, orderCreateRequest);
 
-
-        Order order = new Order(userId, orderCreateRequest.getOrderAddress(), totalPrice);
+        Order order = new Order(orderCreateRequest.getUserId(), orderCreateRequest.getOrderAddress(), totalPrice);
         long orderId = orderRepository.save(order).getOrderId();
 
 
@@ -105,9 +104,10 @@ public class OrderService {
     }
 
     @Transactional
-    public String cancelOrder(long orderId, long userId) {
+    public String cancelOrder(long orderId, OrderStatus orderStatus, long userId) {
         Order order = getOrder(orderId);
         validateUser(order, userId);
+        validateOrderStatus(order, orderStatus);
 
         if (order.getOrderStatus().equals(OrderStatus.ORDER_COMPLETE)) {
             order.updateOrderStatus(OrderStatus.ORDER_CANCEL);
@@ -147,8 +147,19 @@ public class OrderService {
         if (order.getUserId() != userId) throw new IllegalArgumentException("권한이 없습니다");
     }
 
-    private void validatePrice(long expectedPrice, long sourcePrice) {
-        if (expectedPrice != sourcePrice) throw new IllegalArgumentException("주문에 실패했습니다");
+    private void validatePrice(long expectedPrice, OrderCreateRequest createRequest) {
+        long sourcePrice = createRequest.getTotalPrice();
+        if (expectedPrice != sourcePrice) {
+            log.warn("[Order 실패] 주문자: {}, 요청가격: {}, 실제가격: {}", createRequest.getUserId(), sourcePrice, expectedPrice);
+            throw new IllegalArgumentException("주문에 실패했습니다");
+        }
+    }
+
+    private void validateOrderStatus(Order order, OrderStatus orderStatus) {
+        if (!orderStatus.getCancelEnableStatus().contains(order.getOrderStatus())) {
+            log.info("[Order 취소 실패] 주문번호: {}, 주문상태: {}, 변경요청상태: {}", order.getOrderId(), order.getOrderStatus(), orderStatus);
+            throw new IllegalArgumentException("잘못된 요청입니다.");
+        }
     }
 
     private String makeCancelMessage(OrderStatus orderStatus) {

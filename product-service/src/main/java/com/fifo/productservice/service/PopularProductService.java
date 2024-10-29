@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +34,12 @@ public class PopularProductService {
     public List<ProductResponse> getPopularProducts(int size) {
 
         LocalDateTime referenceDate = LocalDateTime.now().minusDays(7);
+        String dateTime = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(referenceDate);
         // 1. 최근 일주일동안 사람들이 주문한 Product 를 가져온다.
-        List<OrderProductResponse> orderProducts = orderClient.findOrderProductsByCreatedAtAfter(referenceDate);
+        List<OrderProductResponse> orderProducts = orderClient.findOrderProductsByCreatedAtAfter(dateTime);
 
         // 2. 최근 일주일동안 사람들이 찜목록에 넣은 Product 를 가져온다.
-        List<WishResponse> wishes = wishClient.findWishesByCreatedAtAfter(referenceDate);
+        List<WishResponse> wishes = wishClient.findWishesByCreatedAtAfter(dateTime);
 
         // 3. productId 에 대해 주문상품 * 2 + 찜목록 상품 * 1 의 가중치로 인기도를 산정하여 상위 size개만 가져온다.
         List<Long> productIds = calculatePopularScore(orderProducts, wishes, size);

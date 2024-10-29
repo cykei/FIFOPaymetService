@@ -1,5 +1,6 @@
 package com.fifo.userservice.service;
 
+import com.fifo.userservice.util.EncryptionUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

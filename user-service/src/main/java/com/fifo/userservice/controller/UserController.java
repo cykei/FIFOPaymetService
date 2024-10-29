@@ -26,12 +26,12 @@ public class UserController {
         return userService.login(request);
     }
 
-    @PostMapping("update-password")
+    @PostMapping("api/update-password")
     public void updatePassword(@UserId Long userId, @RequestBody UserRequest request) {
         userService.updatePassword(userId, request);
     }
 
-    @PostMapping("test")
+    @PostMapping("api/test")
     public String test() {
         return "success";
     }

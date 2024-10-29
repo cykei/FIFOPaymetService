@@ -1,6 +1,6 @@
 package com.fifo.userservice.entity;
 
-import com.fifo.userservice.service.CryptoConverter;
+import com.fifo.userservice.util.CryptoConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

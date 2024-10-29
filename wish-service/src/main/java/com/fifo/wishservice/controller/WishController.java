@@ -2,12 +2,13 @@ package com.fifo.wishservice.controller;
 
 
 import com.fifo.common.dto.PagingResponse;
-import com.fifo.userservice.config.UserId;
+import com.fifo.wishservice.config.UserId;
 import com.fifo.wishservice.service.WishService;
 import com.fifo.wishservice.service.dto.WishCreateRequest;
 import com.fifo.wishservice.service.dto.WishProductResponse;
 import com.fifo.wishservice.service.dto.WishResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,7 @@ import java.util.List;
 public class WishController {
     private final WishService wishService;
 
-    @GetMapping
+    @GetMapping("/my")
     public PagingResponse<WishProductResponse> getWishes(
             @UserId Long userId,
             @RequestParam(required = false) Long cursor,
@@ -41,7 +42,7 @@ public class WishController {
 
     // for product-service
     @GetMapping
-    List<WishResponse> findWishesByCreatedAtAfter(@RequestParam LocalDateTime dateTime){
+    List<WishResponse> findWishesByCreatedAtAfter(@RequestParam @DateTimeFormat(pattern = "yyyyMMddHHmmss")  LocalDateTime dateTime){
         return wishService.findWishesByCreatedAtAfter(dateTime);
     }
 }

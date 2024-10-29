@@ -1,4 +1,4 @@
-package com.fifo.userservice.service;
+package com.fifo.userservice.util;
 
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;

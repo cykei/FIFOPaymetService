@@ -1,4 +1,4 @@
-package com.fifo.userservice.service;
+package com.fifo.userservice.util;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
