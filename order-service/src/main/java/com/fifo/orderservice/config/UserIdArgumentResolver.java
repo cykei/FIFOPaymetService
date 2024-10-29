@@ -1,4 +1,4 @@
-package com.fifo.userservice.config;
+package com.fifo.orderservice.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
