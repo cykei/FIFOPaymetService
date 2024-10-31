@@ -2,6 +2,8 @@ package com.fifo.gatewayservice.filter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,17 +17,19 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import javax.crypto.SecretKey;
 import java.util.Map;
 
 @Component
 @Slf4j
 public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    private final SecretKey secretKey;
 
-    public JwtFilter() {
+    public JwtFilter(@Value("${jwt.secret}") String jwtSecret) {
         super(Config.class);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     @Override
@@ -35,7 +39,7 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
             ServerHttpResponse response = exchange.getResponse();
 
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return chain.filter(exchange);
+                return handleUnauthorized(response, "Invalid User Request.");
             }
 
             String authHeader = request.getHeaders().getOrEmpty(HttpHeaders.AUTHORIZATION).get(0);
@@ -46,12 +50,15 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
             String token = authHeader.substring(7);
 
             try {
-                Claims claims = Jwts.parser()
-                        .setSigningKey(jwtSecret)
+
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(secretKey)
+                        .build()
                         .parseClaimsJws(token)
                         .getBody();
 
                 log.info("JWT Claims: ");
+
                 ServerHttpRequest.Builder mutatedRequest = request.mutate();
                 for (Map.Entry<String, Object> entry : claims.entrySet()) {
                     String claimKey = "X-Claim-" + entry.getKey();

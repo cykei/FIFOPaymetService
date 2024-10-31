@@ -8,10 +8,13 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE:http://127.0.0.1:8761/eureka/}
 
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
 spring:
   application:
     name: gateway-service
-
   cloud:
     gateway:
       routes:
@@ -35,7 +38,6 @@ spring:
             - Path=/user-service/**
           filters:
             - StripPrefix=1
-            - name: JwtFilter
         - id: product-service
           uri: lb://product-service
           predicates:

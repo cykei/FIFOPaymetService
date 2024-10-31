@@ -16,13 +16,6 @@ import javax.crypto.SecretKey;
 
 @Component
 public class UserIdArgumentResolver implements HandlerMethodArgumentResolver {
-    private final SecretKey secretKey;
-
-    public UserIdArgumentResolver(@Value("${jwt.secret}") String secret) {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-    }
-
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(UserId.class);
@@ -30,21 +23,7 @@ public class UserIdArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-        String authorizationHeader = webRequest.getHeader("Authorization");
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            return null;
-        }
-        String token = authorizationHeader.substring(7);
-        return getUserIdFromToken(token);
-    }
-
-    private Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.get("userId", Long.class);
+        String userId = webRequest.getHeader("X-Claim-userId");
+        return userId != null ? Long.parseLong(userId) : null;
     }
 }
