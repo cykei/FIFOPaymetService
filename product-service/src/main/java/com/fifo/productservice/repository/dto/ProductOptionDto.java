@@ -13,6 +13,7 @@ public class ProductOptionDto {
     private int productPrice;
     private long optionId;
     private int optionPrice;
+    private int productCount;
 
     public int getFinalProductPrice() {
         return productPrice + optionPrice;

@@ -10,9 +10,10 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: none
-
-jwt:
-  secret: bd6529fd5e32e820d513a0d814d5b1542a59527c947fe154d03f41a0dffee001
+  data:
+    redis:
+      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST:localhost}
 
 server:
   port: 8081

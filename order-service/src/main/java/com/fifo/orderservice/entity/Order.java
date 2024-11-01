@@ -27,7 +27,7 @@ public class Order {
     private long orderTotalPrice; // 한번에 주문한 상품의 총 가격
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus = OrderStatus.ORDER_COMPLETE;
+    private OrderStatus orderStatus = OrderStatus.PAYMENT_REQUIRED;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

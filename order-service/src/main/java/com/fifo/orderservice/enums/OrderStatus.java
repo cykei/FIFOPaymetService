@@ -5,6 +5,7 @@ import java.util.List;
 
 public enum OrderStatus {
     ORDER_CANCEL("주문취소", Collections.emptyList()),
+    PAYMENT_REQUIRED ("결제요청", Collections.emptyList()),
     ORDER_COMPLETE("주문완료", List.of(ORDER_CANCEL)),
     DELIVERY_NOW("배송중", Collections.emptyList()),
     RETURN_REQUEST("반품요청 접수", Collections.emptyList()),

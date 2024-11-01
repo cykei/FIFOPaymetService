@@ -54,7 +54,8 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                         product.productId,
                         product.price,
                         productOption.id,
-                        productOption.optionPrice))
+                        productOption.optionPrice,
+                        productOption.productCount))
                 .from(productOption)
                 .join(product).on(productOption.productId.eq(product.productId))
                 .where(productOption.id.in(optionsIds))

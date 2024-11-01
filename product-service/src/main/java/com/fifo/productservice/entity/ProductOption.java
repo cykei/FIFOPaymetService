@@ -31,4 +31,8 @@ public class ProductOption {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public void updateProductCount(int productCount) {
+        this.productCount = productCount;
+    }
 }
