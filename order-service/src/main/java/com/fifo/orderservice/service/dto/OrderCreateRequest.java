@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class OrderCreateRequest {
+    @NotBlank
     String orderAddress;
     Long userId;
 
@@ -17,5 +18,6 @@ public class OrderCreateRequest {
     List<OrderRequest> orderRequests;
     long totalPrice;
 
+    @NotBlank
     PaymentType paymentType;
 }

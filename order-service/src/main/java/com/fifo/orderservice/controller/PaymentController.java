@@ -1,6 +1,5 @@
 package com.fifo.orderservice.controller;
 
-import com.fifo.orderservice.config.UserId;
 import com.fifo.orderservice.service.PaymentService;
 import com.fifo.orderservice.service.dto.PaymentRequest;
 import jakarta.validation.Valid;
@@ -19,10 +18,10 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<String> processPayment(@RequestBody @Valid PaymentRequest request, @UserId Long userId) {
+    public ResponseEntity<String> processPayment(@RequestBody @Valid PaymentRequest request) {
         if (Math.random() < 0.2) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Payment failed");
         }
-        return paymentService.processPayment(request, userId);
+        return paymentService.processPayment(request);
     }
 }

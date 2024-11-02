@@ -7,8 +7,10 @@ import com.fifo.orderservice.service.OrderService;
 import com.fifo.orderservice.service.dto.OrderCreateRequest;
 import com.fifo.orderservice.service.dto.OrderDetailResponse;
 import com.fifo.orderservice.service.dto.OrderResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -31,7 +33,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public Long createOrder(@RequestBody OrderCreateRequest orderCreateRequest, @UserId Long userId) {
+    public ResponseEntity<Long> createOrder(@RequestBody @Valid OrderCreateRequest orderCreateRequest, @UserId Long userId) {
         orderCreateRequest.setUserId(userId);
         return orderService.createOrder(orderCreateRequest);
     }

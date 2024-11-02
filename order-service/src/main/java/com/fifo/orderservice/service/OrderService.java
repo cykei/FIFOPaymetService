@@ -6,10 +6,12 @@ import com.fifo.orderservice.client.ProductClient;
 import com.fifo.orderservice.client.dto.ProductOptionResponse;
 import com.fifo.orderservice.entity.Order;
 import com.fifo.orderservice.entity.OrderProduct;
+import com.fifo.orderservice.entity.Payment;
 import com.fifo.orderservice.enums.OrderStatus;
 import com.fifo.orderservice.mapper.OrderMapper;
 import com.fifo.orderservice.repository.OrderProductRepository;
 import com.fifo.orderservice.repository.OrderRepository;
+import com.fifo.orderservice.repository.PaymentRepository;
 import com.fifo.orderservice.service.dto.OrderCreateRequest;
 import com.fifo.orderservice.service.dto.OrderDetailResponse;
 import com.fifo.orderservice.service.dto.OrderRequest;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
+    private final PaymentRepository paymentRepository;
     private final OrderMapper orderMapper;
 
     private final ProductClient productClient;
@@ -74,7 +77,7 @@ public class OrderService {
 
 
     @Transactional
-    public long createOrder(OrderCreateRequest orderCreateRequest) {
+    public ResponseEntity<Long> createOrder(OrderCreateRequest orderCreateRequest) {
         Map<Long, OrderRequest> orderedProductMap = orderCreateRequest.getOrderRequests().stream()
                 .collect(Collectors.toMap(OrderRequest::getOptionId, Function.identity()));
 
@@ -120,7 +123,7 @@ public class OrderService {
                 log.warn("인테럽이 발생했습니다: ", e);
                 restoreStock(successOptionIds);
                 throw new RuntimeException(e);
-            } catch (RedisException e ) {
+            } catch (RedisException e) {
                 log.warn("Redis 관련 에러가 발생했습니다: ", e);
                 restoreStock(successOptionIds);
                 throw new RuntimeException(e);
@@ -128,15 +131,18 @@ public class OrderService {
                 log.error("에러가 발생했습니다: ", e);
                 restoreStock(successOptionIds);
                 throw new RuntimeException(e);
-            }
-            finally {
+            } finally {
                 log.info("락을 해제했다." + lock);
                 lock.unlock();
             }
         }
 
         // 3. 주문생성
-        Order order = new Order(orderCreateRequest.getUserId(), orderCreateRequest.getOrderAddress(), totalPrice);
+        Order order = new Order(
+                orderCreateRequest.getUserId(),
+                orderCreateRequest.getOrderAddress(),
+                totalPrice,
+                orderCreateRequest.getPaymentType());
         long orderId = orderRepository.save(order).getOrderId();
 
 
@@ -151,7 +157,12 @@ public class OrderService {
         }
 
         orderProductRepository.saveAll(orderProducts);
-        return orderId;
+
+        // 4. 결제 생성
+        Payment payment = new Payment(orderId, orderCreateRequest.getPaymentType());
+        paymentRepository.save(payment);
+
+        return ResponseEntity.ok(orderId);
     }
 
     @Transactional
