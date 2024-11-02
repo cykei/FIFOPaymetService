@@ -27,7 +27,7 @@ public class Order {
     private long orderTotalPrice; // 한번에 주문한 상품의 총 가격
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus = OrderStatus.PAYMENT_REQUIRED;
+    private OrderStatus orderStatus;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -35,10 +35,15 @@ public class Order {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public Order(long userId, String orderAddress, long orderTotalPrice) {
+    public Order(long userId, String orderAddress, long orderTotalPrice, PaymentType paymentType) {
         this.userId = userId;
         this.orderAddress = orderAddress;
         this.orderTotalPrice = orderTotalPrice;
+        if (paymentType.equals(PaymentType.CASH)) {
+            this.orderStatus = OrderStatus.ORDER_COMPLETE;
+        } else {
+            this.orderStatus = OrderStatus.PAYMENT_REQUIRED;
+        }
     }
 
     public void updateOrderStatus(OrderStatus orderStatus) {

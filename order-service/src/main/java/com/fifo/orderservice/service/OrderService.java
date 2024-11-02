@@ -6,16 +6,23 @@ import com.fifo.orderservice.client.ProductClient;
 import com.fifo.orderservice.client.dto.ProductOptionResponse;
 import com.fifo.orderservice.entity.Order;
 import com.fifo.orderservice.entity.OrderProduct;
+import com.fifo.orderservice.entity.Payment;
 import com.fifo.orderservice.enums.OrderStatus;
 import com.fifo.orderservice.mapper.OrderMapper;
 import com.fifo.orderservice.repository.OrderProductRepository;
 import com.fifo.orderservice.repository.OrderRepository;
+import com.fifo.orderservice.repository.PaymentRepository;
 import com.fifo.orderservice.service.dto.OrderCreateRequest;
 import com.fifo.orderservice.service.dto.OrderDetailResponse;
 import com.fifo.orderservice.service.dto.OrderRequest;
 import com.fifo.orderservice.service.dto.OrderResponse;
 import com.fifo.orderservice.util.OrderValidator;
+import io.lettuce.core.RedisException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,17 +30,24 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
+    private final PaymentRepository paymentRepository;
     private final OrderMapper orderMapper;
 
     private final ProductClient productClient;
+    private final RedissonClient redissonClient;
+
+    private final String PRODUCT_LOCK_FORMAT = "stock:productOption:%d";
 
     public PagingResponse<OrderResponse> getOrders(Long cursor, int size, long userId) {
         List<Order> orders = orderRepository.getOrders(userId, size, cursor);
@@ -63,13 +77,16 @@ public class OrderService {
 
 
     @Transactional
-    public long createOrder(OrderCreateRequest orderCreateRequest) {
-        List<Long> optionIds = orderCreateRequest.getOrderRequests().stream()
-                .map(OrderRequest::getOptionId)
-                .collect(Collectors.toList());
+    public ResponseEntity<Long> createOrder(OrderCreateRequest orderCreateRequest) {
+        Map<Long, OrderRequest> orderedProductMap = orderCreateRequest.getOrderRequests().stream()
+                .collect(Collectors.toMap(OrderRequest::getOptionId, Function.identity()));
 
+        Set<Long> optionIds = orderedProductMap.keySet();
+
+        log.info("optionIds: {}", optionIds);
         // 주문한 상품 가격조회
         List<ProductOptionResponse> productOptions = productClient.findProductOptionsIn(optionIds);
+
         Map<Long, ProductOptionResponse> productOptionMap = productOptions.stream()
                 .collect(Collectors.toMap(ProductOptionResponse::getOptionId, Function.identity()));
 
@@ -83,7 +100,49 @@ public class OrderService {
 
         OrderValidator.validatePrice(totalPrice, orderCreateRequest);
 
-        Order order = new Order(orderCreateRequest.getUserId(), orderCreateRequest.getOrderAddress(), totalPrice);
+        // 2. orderRequest 로 받은 물건들 락 획득 및 재고 차감
+        List<OrderRequest> successOptionIds = new ArrayList<>();
+        for (Long productOptionId : orderedProductMap.keySet()) {
+
+            RLock lock = redissonClient.getLock(String.format(PRODUCT_LOCK_FORMAT, productOptionId));
+            try {
+                // 5초 동안 획득하려고 시도하고, 최대 1초동안 점유한다.
+                if (lock.tryLock(5, 60, TimeUnit.SECONDS)) {
+                    log.info("락을 획득했다." + productOptionId);
+                    // 락을 얻었으면 재고감소
+                    ResponseEntity<Boolean> result = productClient.decreaseStock(productOptionId, orderedProductMap.get(productOptionId).getCount());
+                    if (result.getBody().equals(Boolean.TRUE)) {
+                        successOptionIds.add(orderedProductMap.get(productOptionId));
+                        log.info("재고 감소 성공" + productOptionId);
+                    } else {
+                        // 재고가 이미 0이거나 다른 원인으로 실패함.
+                        throw new IllegalArgumentException("재고가 없습니다.");
+                    }
+                }
+            } catch (InterruptedException e) {
+                log.warn("인테럽이 발생했습니다: ", e);
+                restoreStock(successOptionIds);
+                throw new RuntimeException(e);
+            } catch (RedisException e) {
+                log.warn("Redis 관련 에러가 발생했습니다: ", e);
+                restoreStock(successOptionIds);
+                throw new RuntimeException(e);
+            } catch (Exception e) {
+                log.error("에러가 발생했습니다: ", e);
+                restoreStock(successOptionIds);
+                throw new RuntimeException(e);
+            } finally {
+                log.info("락을 해제했다." + lock);
+                lock.unlock();
+            }
+        }
+
+        // 3. 주문생성
+        Order order = new Order(
+                orderCreateRequest.getUserId(),
+                orderCreateRequest.getOrderAddress(),
+                totalPrice,
+                orderCreateRequest.getPaymentType());
         long orderId = orderRepository.save(order).getOrderId();
 
 
@@ -98,7 +157,12 @@ public class OrderService {
         }
 
         orderProductRepository.saveAll(orderProducts);
-        return orderId;
+
+        // 4. 결제 생성
+        Payment payment = new Payment(orderId, orderCreateRequest.getPaymentType());
+        paymentRepository.save(payment);
+
+        return ResponseEntity.ok(orderId);
     }
 
     @Transactional
@@ -128,6 +192,12 @@ public class OrderService {
         List<OrderProduct> returnOrderProducts = orderProductRepository.findByOrderId(order.getOrderId());
         for (OrderProduct orderProduct : returnOrderProducts) {
             productClient.increaseStock(orderProduct.getOptionId(), orderProduct.getProductCount());
+        }
+    }
+
+    public void restoreStock(List<OrderRequest> orderRequests) {
+        for (OrderRequest orderRequest : orderRequests) {
+            productClient.increaseStock(orderRequest.getOptionId(), orderRequest.getCount());
         }
     }
 
