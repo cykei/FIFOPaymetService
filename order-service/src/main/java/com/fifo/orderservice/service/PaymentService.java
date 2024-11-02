@@ -33,7 +33,6 @@ public class PaymentService {
 
         // 1.주문진행
         processPurchase(order);
-
         // 2. 결제
         try {
             paymentClient.payment(orderId, request);

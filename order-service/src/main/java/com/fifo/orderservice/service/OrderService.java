@@ -16,6 +16,10 @@ import com.fifo.orderservice.service.dto.OrderRequest;
 import com.fifo.orderservice.service.dto.OrderResponse;
 import com.fifo.orderservice.util.OrderValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +27,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -34,6 +41,9 @@ public class OrderService {
     private final OrderMapper orderMapper;
 
     private final ProductClient productClient;
+    private final RedissonClient redissonClient;
+
+    private final String PRODUCT_LOCK_FORMAT = "stock:productOption:%d";
 
     public PagingResponse<OrderResponse> getOrders(Long cursor, int size, long userId) {
         List<Order> orders = orderRepository.getOrders(userId, size, cursor);
@@ -64,12 +74,15 @@ public class OrderService {
 
     @Transactional
     public long createOrder(OrderCreateRequest orderCreateRequest) {
-        List<Long> optionIds = orderCreateRequest.getOrderRequests().stream()
-                .map(OrderRequest::getOptionId)
-                .collect(Collectors.toList());
+        Map<Long, Integer> orderedProductMap = orderCreateRequest.getOrderRequests().stream()
+                .collect(Collectors.toMap(OrderRequest::getOptionId, OrderRequest::getCount));
 
+        Set<Long> optionIds = orderedProductMap.keySet();
+
+        log.info("optionIds: {}", optionIds);
         // 주문한 상품 가격조회
         List<ProductOptionResponse> productOptions = productClient.findProductOptionsIn(optionIds);
+
         Map<Long, ProductOptionResponse> productOptionMap = productOptions.stream()
                 .collect(Collectors.toMap(ProductOptionResponse::getOptionId, Function.identity()));
 
@@ -82,7 +95,33 @@ public class OrderService {
         }
 
         OrderValidator.validatePrice(totalPrice, orderCreateRequest);
+        log.info("OK");
+        // 2. orderRequest 로 받은 물건들 락 획득 및 재고 차감
 
+        for (Long productOptionId : orderedProductMap.keySet()) {
+
+            RLock lock = redissonClient.getLock(String.format(PRODUCT_LOCK_FORMAT, productOptionId));
+            try {
+                // 5초 동안 획득하려고 시도하고, 최대 1초동안 점유한다.
+                if (lock.tryLock(5, 1, TimeUnit.SECONDS)) {
+                    log.info("락을 획득했다.");
+                    // 락을 얻었으면 재고감소
+                    ResponseEntity<Boolean> result = productClient.decreaseStock(productOptionId, orderedProductMap.get(productOptionId));
+                    if (result.getBody().equals(Boolean.TRUE)) {
+                        lock.unlock();
+                    } else {
+                        // 재고가 이미 0이거나 다른 원인으로 실패함.
+                        throw new IllegalArgumentException("재고가 없습니다.");
+                    }
+                }
+
+            } catch (InterruptedException e) {
+                log.warn("여기서 캐치되버렸당. ");
+                throw new RuntimeException(e);
+            }
+        }
+
+        // 3. 주문생성
         Order order = new Order(orderCreateRequest.getUserId(), orderCreateRequest.getOrderAddress(), totalPrice);
         long orderId = orderRepository.save(order).getOrderId();
 

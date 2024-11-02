@@ -9,7 +9,4 @@ import lombok.Setter;
 public class PaymentRequest {
     @NotNull
     private Long orderId;
-    private String paymentType;
-    private String creditCardNumber;
-    private String cardHolderName;
 }

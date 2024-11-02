@@ -2,13 +2,15 @@ package com.fifo.productservice.controller;
 
 import com.fifo.common.dto.PagingResponse;
 import com.fifo.productservice.repository.dto.ProductOptionDto;
+import com.fifo.productservice.service.ProductService;
 import com.fifo.productservice.service.dto.ProductDetailResponse;
 import com.fifo.productservice.service.dto.ProductResponse;
-import com.fifo.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
@@ -34,17 +36,17 @@ public class ProductController {
 
     // for order-service
     @GetMapping("/options")
-    public List<ProductOptionDto> findProductOptionsIn(@RequestParam List<Long> optionIds) {
+    public List<ProductOptionDto> findProductOptionsIn(@RequestParam Set<Long> optionIds) {
         return productService.findProductOptionsIn(optionIds);
     }
 
     @PostMapping("/decreaseStock")
-    public void decreaseStock(@RequestParam Long optionId, @RequestParam Integer quantity) {
-        productService.decreaseStock(optionId, quantity);
+    public ResponseEntity<Boolean> decreaseStock(@RequestParam Long optionId, @RequestParam Integer quantity) {
+        return productService.decreaseStock(optionId, quantity);
     }
 
     @PostMapping("/increaseStock")
-    public void increaseStock(@RequestParam Long optionId, @RequestParam Integer quantity) {
-        productService.increaseStock(optionId, quantity);
+    public ResponseEntity<Boolean> increaseStock(@RequestParam Long optionId, @RequestParam Integer quantity) {
+        return productService.increaseStock(optionId, quantity);
     }
 }

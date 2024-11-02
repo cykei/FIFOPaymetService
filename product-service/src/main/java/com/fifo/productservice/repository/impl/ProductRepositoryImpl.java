@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Repository
 public class ProductRepositoryImpl implements ProductRepositoryCustom {
@@ -48,7 +49,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     @Override
-    public List<ProductOptionDto> findProductOptionsIn(List<Long> optionsIds) {
+    public List<ProductOptionDto> findProductOptionsIn(Set<Long> optionsIds) {
         return queryFactory.select(Projections.constructor(ProductOptionDto.class,
                         productOption.id,
                         product.productId,
