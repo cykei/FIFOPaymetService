@@ -30,9 +30,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
-    @Enumerated(EnumType.STRING)
-    private PaymentType paymentType;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 

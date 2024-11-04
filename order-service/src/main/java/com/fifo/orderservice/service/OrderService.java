@@ -8,6 +8,7 @@ import com.fifo.orderservice.entity.Order;
 import com.fifo.orderservice.entity.OrderProduct;
 import com.fifo.orderservice.entity.Payment;
 import com.fifo.orderservice.enums.OrderStatus;
+import com.fifo.orderservice.enums.PaymentType;
 import com.fifo.orderservice.mapper.OrderMapper;
 import com.fifo.orderservice.repository.OrderProductRepository;
 import com.fifo.orderservice.repository.OrderRepository;
@@ -17,7 +18,6 @@ import com.fifo.orderservice.service.dto.OrderDetailResponse;
 import com.fifo.orderservice.service.dto.OrderRequest;
 import com.fifo.orderservice.service.dto.OrderResponse;
 import com.fifo.orderservice.util.OrderValidator;
-import io.lettuce.core.RedisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -78,92 +78,108 @@ public class OrderService {
 
     @Transactional
     public ResponseEntity<Long> createOrder(OrderCreateRequest orderCreateRequest) {
-        Map<Long, OrderRequest> orderedProductMap = orderCreateRequest.getOrderRequests().stream()
-                .collect(Collectors.toMap(OrderRequest::getOptionId, Function.identity()));
+        Map<Long, OrderRequest> orderedProductMap = mapOrderRequests(orderCreateRequest);
+        Map<Long, ProductOptionResponse> productOptionMap = mapProductOptions(orderedProductMap.keySet());
 
-        Set<Long> optionIds = orderedProductMap.keySet();
-
-        log.info("optionIds: {}", optionIds);
-        // 주문한 상품 가격조회
-        List<ProductOptionResponse> productOptions = productClient.findProductOptionsIn(optionIds);
-
-        Map<Long, ProductOptionResponse> productOptionMap = productOptions.stream()
-                .collect(Collectors.toMap(ProductOptionResponse::getOptionId, Function.identity()));
-
-        int totalPrice = 0;
-        for (OrderRequest orderRequest : orderCreateRequest.getOrderRequests()) {
-            long optionId = orderRequest.getOptionId();
-            long optionCount = orderRequest.getCount();
-            int finalPrice = productOptionMap.get(optionId).getFinalProductPrice();
-            totalPrice += finalPrice * optionCount;
-        }
-
+        // 1. 주문서 위조 여부 검증
+        int totalPrice = calculateTotalPrice(orderCreateRequest, productOptionMap);
         OrderValidator.validatePrice(totalPrice, orderCreateRequest);
 
-        // 2. orderRequest 로 받은 물건들 락 획득 및 재고 차감
+        // 2. 재고차감
+        List<OrderRequest> successOptionIds = lockAndDecreaseStock(orderedProductMap);
+
+        // 3. Order, Payment 데이터 생성
+        try {
+            long orderId = createOrderRecord(orderCreateRequest, totalPrice);
+            saveOrderProducts(orderCreateRequest, orderId, productOptionMap);
+            createPayment(orderId, orderCreateRequest.getPaymentType());
+            return ResponseEntity.ok(orderId);
+        } catch (Exception e) {
+            // 예상가능한 예외상황 : db 용량부족으로 order 저장 못하는 경우
+            restoreStock(successOptionIds);
+            throw new RuntimeException("주문 처리 중 에러 발생", e);
+        }
+    }
+
+    private Map<Long, OrderRequest> mapOrderRequests(OrderCreateRequest orderCreateRequest) {
+        return orderCreateRequest.getOrderRequests().stream()
+                .collect(Collectors.toMap(OrderRequest::getOptionId, Function.identity()));
+    }
+
+    private Map<Long, ProductOptionResponse> mapProductOptions(Set<Long> optionIds) {
+        List<ProductOptionResponse> productOptions = productClient.findProductOptionsIn(optionIds);
+        return productOptions.stream()
+                .collect(Collectors.toMap(ProductOptionResponse::getOptionId, Function.identity()));
+    }
+
+    private int calculateTotalPrice(OrderCreateRequest orderCreateRequest, Map<Long, ProductOptionResponse> productOptionMap) {
+        return orderCreateRequest.getOrderRequests().stream()
+                .mapToInt(orderRequest -> productOptionMap.get(orderRequest.getOptionId()).getFinalProductPrice() * orderRequest.getCount())
+                .sum();
+    }
+
+    private List<OrderRequest> lockAndDecreaseStock(Map<Long, OrderRequest> orderedProductMap) {
         List<OrderRequest> successOptionIds = new ArrayList<>();
         for (Long productOptionId : orderedProductMap.keySet()) {
-
             RLock lock = redissonClient.getLock(String.format(PRODUCT_LOCK_FORMAT, productOptionId));
             try {
-                // 5초 동안 획득하려고 시도하고, 최대 1초동안 점유한다.
-                if (lock.tryLock(5, 60, TimeUnit.SECONDS)) {
-                    log.info("락을 획득했다." + productOptionId);
-                    // 락을 얻었으면 재고감소
-                    ResponseEntity<Boolean> result = productClient.decreaseStock(productOptionId, orderedProductMap.get(productOptionId).getCount());
-                    if (result.getBody().equals(Boolean.TRUE)) {
+                if (lock.tryLock(5, 1, TimeUnit.SECONDS)) {
+                    log.info("락을 획득했다.{}", lock);
+                    boolean stockDecreased = decreaseStock(productOptionId, orderedProductMap.get(productOptionId));
+                    if (stockDecreased) {
                         successOptionIds.add(orderedProductMap.get(productOptionId));
-                        log.info("재고 감소 성공" + productOptionId);
-                    } else {
-                        // 재고가 이미 0이거나 다른 원인으로 실패함.
-                        throw new IllegalArgumentException("재고가 없습니다.");
                     }
                 }
-            } catch (InterruptedException e) {
-                log.warn("인테럽이 발생했습니다: ", e);
-                restoreStock(successOptionIds);
-                throw new RuntimeException(e);
-            } catch (RedisException e) {
-                log.warn("Redis 관련 에러가 발생했습니다: ", e);
-                restoreStock(successOptionIds);
-                throw new RuntimeException(e);
             } catch (Exception e) {
-                log.error("에러가 발생했습니다: ", e);
-                restoreStock(successOptionIds);
-                throw new RuntimeException(e);
+                handleStockException(e, successOptionIds);
             } finally {
-                log.info("락을 해제했다." + lock);
                 lock.unlock();
+                log.info("락을 해제했다: {}", lock);
             }
         }
+        return successOptionIds;
+    }
 
-        // 3. 주문생성
+    private boolean decreaseStock(Long productOptionId, OrderRequest orderRequest) {
+        ResponseEntity<Boolean> result = productClient.decreaseStock(productOptionId, orderRequest.getCount());
+        if (Boolean.TRUE.equals(result.getBody())) {
+            return true;
+        } else {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+    }
+    private void handleStockException(Exception e, List<OrderRequest> successOptionIds) {
+        restoreStock(successOptionIds);
+        log.info("재고 부족으로 인해 기존 성공 재고 복구", e);
+        throw new RuntimeException(e);
+    }
+
+    private long createOrderRecord(OrderCreateRequest orderCreateRequest, int totalPrice) {
         Order order = new Order(
                 orderCreateRequest.getUserId(),
                 orderCreateRequest.getOrderAddress(),
                 totalPrice,
                 orderCreateRequest.getPaymentType());
-        long orderId = orderRepository.save(order).getOrderId();
-
-
-        List<OrderProduct> orderProducts = new ArrayList<>();
-        for (OrderRequest orderRequest : orderCreateRequest.getOrderRequests()) {
-            long optionId = orderRequest.getOptionId();
-            long productId = productOptionMap.get(optionId).getProductId();
-            int optionCount = orderRequest.getCount();
-            int finalPrice = productOptionMap.get(optionId).getFinalProductPrice();
-            OrderProduct orderProduct = new OrderProduct(orderId, productId, optionId, optionCount, finalPrice);
-            orderProducts.add(orderProduct);
-        }
-
-        orderProductRepository.saveAll(orderProducts);
-
-        // 4. 결제 생성
-        Payment payment = new Payment(orderId, orderCreateRequest.getPaymentType());
-        paymentRepository.save(payment);
-
-        return ResponseEntity.ok(orderId);
+        return orderRepository.save(order).getOrderId();
     }
+
+    private void saveOrderProducts(OrderCreateRequest orderCreateRequest, long orderId, Map<Long, ProductOptionResponse> productOptionMap) {
+        List<OrderProduct> orderProducts = orderCreateRequest.getOrderRequests().stream()
+                .map(orderRequest -> new OrderProduct(
+                        orderId,
+                        productOptionMap.get(orderRequest.getOptionId()).getProductId(),
+                        orderRequest.getOptionId(),
+                        orderRequest.getCount(),
+                        productOptionMap.get(orderRequest.getOptionId()).getFinalProductPrice()))
+                .collect(Collectors.toList());
+        orderProductRepository.saveAll(orderProducts);
+    }
+
+    private void createPayment(long orderId, PaymentType paymentType) {
+        Payment payment = new Payment(orderId, paymentType);
+        paymentRepository.save(payment);
+    }
+
 
     @Transactional
     public String cancelOrder(long orderId, OrderStatus orderStatus, long userId) {
