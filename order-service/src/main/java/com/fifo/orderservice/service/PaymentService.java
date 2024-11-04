@@ -34,7 +34,8 @@ public class PaymentService {
         payment.updatePayment(request.getPaymentPrice());
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow();
         if (order.getOrderStatus().equals(OrderStatus.PAYMENT_REQUIRED)) {
-            order.updateOrderStatus(OrderStatus.PAYMENT_REQUIRED);
+            // 뭔가 .. 결제한 금액이 주문한 금액과 맞는지 검증하는 작업이 필요한가? 안맞으면 어떻게 해야되는거지??
+            order.updateOrderStatus(OrderStatus.ORDER_COMPLETE);
         } else {
             // 한번 결제가 됐는데 다시한번 결제를 함
             // 환불처리 ...?
