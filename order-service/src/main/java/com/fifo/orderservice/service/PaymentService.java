@@ -48,6 +48,7 @@ public class PaymentService {
         // 무통장 입금 방식 외 입금은 5분마다 체크해서 이탈로 감지되는 row 는 삭제한다.
         LocalDateTime timeout = LocalDateTime.now().minusMinutes(30);
         List<Order> orders = orderRepository.findByOrderStatusAndCreatedAtBefore(OrderStatus.PAYMENT_REQUIRED, timeout);
+        log.info("주문이탈: " + orders.size());
         orderRepository.deleteAll(orders);
         List<Long> orderIds = orders.stream().map(Order::getOrderId).toList();
         paymentRepository.deleteAllByOrderIdIn(orderIds);

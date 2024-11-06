@@ -94,6 +94,16 @@ CREATE TABLE `wish` (
                         `updated_at` datetime(6) DEFAULT NULL
 );
 
+CREATE TABLE `payment` (
+                                       `payment_id` INT NOT NULL AUTO_INCREMENT,
+                                       `order_id` INT NOT NULL,
+                                       `payment_type` VARCHAR(45) NOT NULL,
+                                       `payment_price` INT NULL,
+                                       `payment_status` VARCHAR(45) NOT NULL,
+                                       `created_at` DATETIME NOT NULL,
+                                       `updated_at` DATETIME NULL,
+                                       PRIMARY KEY (`payment_id`));
+
 CREATE INDEX IX_relationship_category_product ON relationship_category_product(category_id, product_id);
 CREATE INDEX IX_product_option ON product_option(product_id);
 CREATE INDEX IX_wish ON wish(user_id);
