@@ -43,6 +43,7 @@ public class PaymentService {
         return ResponseEntity.ok("주문완료 되었습니다.");
     }
 
+    @Transactional
     @Scheduled(cron = "0 5 * * * *")
     public void removeOrderWIthOutCash() {
         // 무통장 입금 방식 외 입금은 5분마다 체크해서 이탈로 감지되는 row 는 삭제한다.
@@ -54,6 +55,7 @@ public class PaymentService {
         paymentRepository.deleteAllByOrderIdIn(orderIds);
     }
 
+    @Transactional
     @Scheduled(cron =  "0 0 10 * * *")
     public void removeOrderWIthCash() {
         // 무통장 입금의 경우 주문 이후 2일후 아침 10시 까지 입금되지 않은 경우 삭제한다.
