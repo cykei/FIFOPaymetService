@@ -1,5 +1,6 @@
 package com.fifo.orderservice.service.dto;
 
+import com.fifo.orderservice.enums.PaymentType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,8 @@ import lombok.Setter;
 public class PaymentRequest {
     @NotNull
     private Long orderId;
-    private String paymentType;
-    private String creditCardNumber;
-    private String cardHolderName;
+
+    private long paymentPrice;
+
+    private PaymentType paymentType;
 }

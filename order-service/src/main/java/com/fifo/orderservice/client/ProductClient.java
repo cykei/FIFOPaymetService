@@ -9,18 +9,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Set;
 
 @FeignClient(name = "product-service")
 public interface ProductClient {
 
     @GetMapping("/api/products/options")
-    List<ProductOptionResponse> findProductOptionsIn(@RequestParam("optionIds") List<Long> optionIds);
+    List<ProductOptionResponse> findProductOptionsIn(@RequestParam("optionIds") Set<Long> optionIds);
 
     @PostMapping("/api/products/decreaseStock")
-    void decreaseStock(@RequestParam("optionId") Long optionId, @RequestParam("quantity") Integer quantity);
+    ResponseEntity<Boolean> decreaseStock(@RequestParam("optionId") Long optionId, @RequestParam("quantity") Integer quantity);
 
     @PostMapping("/api/products/increaseStock")
-    void increaseStock(@RequestParam("optionId") Long optionId, @RequestParam("quantity") Integer quantity);
+    ResponseEntity<Boolean> increaseStock(@RequestParam("optionId") Long optionId, @RequestParam("quantity") Integer quantity);
 
     @GetMapping("/errorful/case1")
     ResponseEntity<String> case1();
