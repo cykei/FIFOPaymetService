@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -49,7 +50,18 @@ public class PaymentService {
         List<Order> orders = orderRepository.findByOrderStatusAndCreatedAtBefore(OrderStatus.PAYMENT_REQUIRED, timeout);
         orderRepository.deleteAll(orders);
         List<Long> orderIds = orders.stream().map(Order::getOrderId).toList();
-        paymentRepository.deleteAllByOrderIdIn(orderIds);
+
+        List<Long> temp = new ArrayList<>();
+        for (int i=0; i<orderIds.size(); i++) {
+            temp.add(orderIds.get(i));
+            if (i%100 == 0) {
+                paymentRepository.deleteAllByOrderIdIn(orderIds);
+                temp = new ArrayList<>();
+            }
+        }
+        if (!temp.isEmpty()) {
+            paymentRepository.deleteAllByOrderIdIn(orderIds);
+        }
     }
 
     @Scheduled(cron =  "0 0 10 * * *")

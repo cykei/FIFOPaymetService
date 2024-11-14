@@ -1,6 +1,7 @@
 package com.fifo.orderservice.entity;
 
 import com.fifo.orderservice.enums.OrderStatus;
+import com.fifo.orderservice.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,9 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
