@@ -21,7 +21,8 @@ python build.py
 ![image](https://github.com/user-attachments/assets/5766e5a4-1ff6-42d1-9696-de697ead7c6b)
 
 ## User flow
-![image](https://github.com/user-attachments/assets/99560745-3498-4d26-ada8-ed34e9dbd1ab)
+![image](https://github.com/user-attachments/assets/be04aaba-0834-4674-b020-c57df76a9563)
+
 
 ## 재고 관리 방법
 - 분산락을 이용한 방법과 캐싱을 이용한 방법 두가지를 제공하고 있습니다.
