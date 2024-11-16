@@ -69,9 +69,12 @@ python build.py
 # 트러블 슈팅
 <details>
    <summary>JWT SecretKey 보안 취약성 보완</summary>
-   - JWT 토큰에서 UserId 를 가져오기 위해 모든 서비스가 SecreteKey를 가진상태에서 API 호출이 들어오면 헤더에 있는 JWT 토큰을 SecreteKey로 복호화하는 과정을 시행했었습니다. SecretKey를 변경하는 경우 모든 서비스의 SecretKey를 같이 변경해줘야하는 불편함이 있었고, 분산저장되어 있다는 점에서 보안이 취약하는 문제점이 있었습니다.
-   - Gateway가 SecretKey를 가지고 있게 하여 API호출이 들어오면 Gateway 단에서 JWT 토큰을 분석하여 UserId를 추출하고 헤더에 다시 장착해주는 방식으로 개선했습니다. 이를 통해서 SecretKey는 JWT토큰을 생성하는 UserService와 Gateway 두 모듈만 갖고 있게 하여 보안 취약성이 개선되었습니다.  
+   <ul>JWT 토큰에서 UserId 를 가져오기 위해 모든 서비스가 SecreteKey를 가진상태에서 API 호출이 들어오면 헤더에 있는 JWT 토큰을 SecreteKey로 복호화하는 과정을 시행했었습니다. SecretKey를 변경하는 경우 모든 서비스의 SecretKey를 같이 변경해줘야하는 불편함이 있었고, 분산저장되어 있다는 점에서 보안이 취약하는 문제점이 있었습니다.
+   </ul>
+   <ul>Gateway가 SecretKey를 가지고 있게 하여 API호출이 들어오면 Gateway 단에서 JWT 토큰을 분석하여 UserId를 추출하고 헤더에 다시 장착해주는 방식으로 개선했습니다. 이를 통해서 SecretKey는 JWT토큰을 생성하는 UserService와 Gateway 두 모듈만 갖고 있게 하여 보안 취약성이 개선되었습니다.  
+   </ul>
 </details>
+
 # api 명세서
 <details>
    <summary>API 명세서</summary>
