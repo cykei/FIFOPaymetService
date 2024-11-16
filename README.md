@@ -65,7 +65,105 @@ python build.py
  
 - eureka-service
   * springCloud의 구현체인 유레카 서버를 띄우고 각 모듈의 상태를 관리합니다.
- 
+
+# api 명세서
+<details>
+   <summary>API 명세서</summary>
+- 회원가입
+
+![image](https://github.com/user-attachments/assets/4fb18921-305e-49dd-8254-2468d7e4dabb)
+
+
+- 로그인
+
+![image](https://github.com/user-attachments/assets/06b93037-d24d-4201-b060-3400dbeebae8)
+
+
+- 상품조회
+
+![image](https://github.com/user-attachments/assets/d038c7cb-c156-4335-853b-4f4d9bdb5512)
+
+
+- 조회결과
+    
+    ```jsx
+    {
+        "totalCount": 4,
+        "cursor": null,
+        "orderResponses": [
+            {
+                "productId": 5,
+                "name": "니트 스웨터",
+                "mainImage": null,
+                "price": 1,
+                "options": [
+                    "베이지",
+                    "그레이"
+                ]
+            },
+            {
+                "productId": 4,
+                "name": "가죽 재킷",
+                "mainImage": null,
+                "price": 1,
+                "options": [
+                    "브라운",
+                    "블랙"
+                ]
+            },
+            {
+                "productId": 3,
+                "name": "캐주얼 셔츠",
+                "mainImage": null,
+                "price": 1,
+                "options": [
+                    "화이트",
+                    "스카이블루"
+                ]
+            },
+            {
+                "productId": 1,
+                "name": "프리미엄 티셔츠",
+                "mainImage": null,
+                "price": 1,
+                "options": [
+                    "화이트",
+                    "블랙",
+                    "네이비"
+                ]
+            }
+        ]
+    }
+    ```
+    
+
+- 상품 상세조회
+
+![image](https://github.com/user-attachments/assets/4d8e8ca5-0c38-4c75-99f9-312efe275557)
+
+
+- wish_list 조회
+
+![image](https://github.com/user-attachments/assets/a3ca9707-73a2-41b1-9dbc-dab9443a6fe3)
+
+- wish_list 추가
+
+![image](https://github.com/user-attachments/assets/e995714a-3db9-4fd6-be00-3982f410d4e3)
+
+- wish_list 삭제
+
+![image](https://github.com/user-attachments/assets/05c5b28f-db84-42a0-af70-ba51bdde53ad)
+
+- 상품주문
+
+![image](https://github.com/user-attachments/assets/08a4208d-9420-4e39-8c37-5fcc1631a06c)
+
+- 상품주문취소
+
+![image](https://github.com/user-attachments/assets/ccd1a5ec-4483-4125-aee9-140b96e95617)
+
+</details>
+
 # todo
 - 상품등록 및 조회 기능. (현재는 MySQL 에 직접 데이터를 입력해서 테스트 합니다)
 - refreshToken을 사용한 인증인가 개발.
