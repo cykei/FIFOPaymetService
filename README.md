@@ -116,7 +116,7 @@ python build.py
 
 
 ### ERD
-![ecommerce](https://github.com/user-attachments/assets/3869f074-1e8f-4537-a578-838c98153285)
+![ecommerce](https://github.com/user-attachments/assets/527cb6fe-66d0-484f-ae22-75d2362077a8)
 
 
 ### User flow
